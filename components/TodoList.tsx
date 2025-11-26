@@ -9,15 +9,22 @@ export default function TodoList({ session }: { session: Session }) {
   const [todos, setTodos] = useState<Todos[]>([])
   const [newTaskText, setNewTaskText] = useState('')
   const [errorText, setErrorText] = useState('')
+  const [fetchTime, setFetchTime] = useState<number | null>(null)
 
   const user = session.user
 
   useEffect(() => {
     const fetchTodos = async () => {
+      const startTime = performance.now()
+      
       const { data: todos, error } = await supabase
         .from('todos')
         .select('*')
         .order('id', { ascending: true })
+
+      const endTime = performance.now()
+      const duration = endTime - startTime
+      setFetchTime(duration)
 
       if (error) console.log('error', error)
       else setTodos(todos)
@@ -56,6 +63,13 @@ export default function TodoList({ session }: { session: Session }) {
   return (
     <div className="w-full">
       <h1 className="mb-12">Todo List.</h1>
+      {fetchTime !== null && (
+        <div className="mb-4 p-3 bg-green-100 rounded-md">
+          <p className="text-sm text-green-900">
+            <strong>Client-side fetch time:</strong> {fetchTime.toFixed(2)}ms
+          </p>
+        </div>
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault()
